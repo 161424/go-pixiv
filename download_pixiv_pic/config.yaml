@@ -9,7 +9,7 @@ postgres:
 Authentication:
   username: "123"
   password: "123"
-  cookie: "first_visit_datetime_pc=2023-05-27+21%3A49%3A27; p_ab_id=5; p_ab_id_2=5; p_ab_d_id=1488817880; yuid_b=MiBXZRA; __cf_bm=7qiebyhO_WCKofMzZ.n7dlPKFTtaLgSZgs5idK.qWKc-1685191770-0-ATcv09EbqlTMc1jJ14CIPLiRjOgT3MxXvGRkCWq9QXSvgcqpuB5Ja6e54Hd8ulBVq+zU9ZcuRJImfRJoSaOICZ7VedhNQF0zgJZoKatPueLlmQ9mGBv2RSqU0Q2jYoe0+FwK67NK008MwKgoHcXogp74WjD4tRMg0yWvcIkDOP//; PHPSESSID=23316552_C2Jii9SSiVooCLNELSMcmVjGy6bntky3; device_token=9ea56d8300ed54333a4e973aa5716e93; c_type=24; privacy_policy_agreement=0; privacy_policy_notification=0; a_type=0; b_type=1; QSI_S_ZN_5hF4My7Ad6VNNAi=v:0:0; login_ever=yes; howto_recent_view_history=108419162"
+  cookie: ""
   cookieFanbox: "123"
   refresh_token: "123"
 
