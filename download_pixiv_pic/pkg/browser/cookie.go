@@ -22,7 +22,7 @@ var Client *http.Client
 func init() {
 	//fmt.Println("Get")
 	sockets, _ := url.Parse(addr.Proxy.Ip + ":" + addr.Proxy.Port)
-	l.Send(slog.LevelInfo, fmt.Sprintf("Proxy:%s", sockets), log.LogFiles|log.LogStdouts, )
+	l.Send(slog.LevelInfo, fmt.Sprintf("Proxy:%s", sockets), log.LogFiles|log.LogStdouts)
 	Client = &http.Client{
 		Transport: &http.Transport{
 			Proxy: http.ProxyURL(sockets),
