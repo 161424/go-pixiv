@@ -1,0 +1,34 @@
+postgres:
+  #name: postgres
+  user: "postgres"
+  dbname: "pixiv_conf"
+  password: "123456"
+  sslmode: "disable"
+  port: 5432
+
+Authentication:
+  username: "123"
+  password: "123"
+  cookie: "first_visit_datetime_pc=2023-05-27+21%3A49%3A27; p_ab_id=5; p_ab_id_2=5; p_ab_d_id=1488817880; yuid_b=MiBXZRA; privacy_policy_notification=0; a_type=0; b_type=1; login_ever=yes; c_type=25; PHPSESSID=23316552_dyi0NqySTdWnhXwDvb674IUYb6volq0g; device_token=ce96e8402f2665aff9cd6569021335df; QSI_S_ZN_5hF4My7Ad6VNNAi=v:0:0; privacy_policy_agreement=6; howto_recent_view_history=113208323%2C113258059%2C113120237%2C112997470; cf_clearance=OCiOgDtqaQ0xW3XIFAT6CBqWH5AETGL_zaFUbOdMe_s-1699537091-0-1-232fee68.a777a679.742eb188-0.2.1699537091; __cf_bm=lXRK29gsNh1F40z9748zm.pDktf8PaumtCB3eR27Tqs-1699694405-0-AQtFmGH8/Im714nssoizt4/NEQvBxwpl371Pibglgd9OrXBRbhrvSdboAmuGVy1EjZKIzvEDkIIy97P5cjHEp+OBzMevrm5w/TKVJrGNnVJV"
+  cookieFanbox: "123"
+  refresh_token: "123"
+  UserAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.36"
+
+Pixiv:
+  numberOfPage: 0
+  r18mode: False
+  r18Type: 0
+  dateFormatL:
+  autoAddMember: False
+  aiDisplayFewer: False
+
+
+NetWork:
+  ProxyIp: "http://127.0.0.1"
+  ProxyPort: "10809"
+  Retry: 3
+  RetryWait: 5
+  DownloadDelay: 5
+
+DownloadControl:
+  Path: 'Z:\使用\图片\pixiv'

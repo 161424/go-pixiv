@@ -1,13 +1,16 @@
-package Browser
+package browser
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/chen/download_pixiv_pic/common/conf"
-	"github.com/chen/download_pixiv_pic/database/sql"
-	"github.com/chen/download_pixiv_pic/pkg/Artist"
-	"log"
+	"github.com/chen/download_pixiv_pic/cmd/utils"
+	"github.com/chen/download_pixiv_pic/common/addr"
+	"github.com/chen/download_pixiv_pic/dao/sql"
+	"github.com/chen/download_pixiv_pic/pkg/artist"
+	"path/filepath"
+
+	//"github.com/chen/download_pixiv_pic/pkg/Browser"
 	"os"
 	"regexp"
 	"strconv"
@@ -15,7 +18,7 @@ import (
 	"time"
 )
 
-var NewWork = conf.NewNetWork()
+var NewWork = addr.NewNetWork()
 
 func IsNotLoggedIn(page *goquery.Document) bool {
 	check := page.Find(".signup_button")
@@ -75,54 +78,58 @@ func IsErrorExist(page *goquery.Document) {
 }
 
 func PrintInfo(img *sql.ImageInfo) {
-	fmt.Printf("  Member Name %s\n", img.UserName)
-	fmt.Printf("  Title %s\n", img.ImageTitle)
-	fmt.Printf("  Tags Title %s\n", img.ImageTags)
-	fmt.Printf("  Translated Tags %s\n", img.TranslationTag)
-	fmt.Printf("  Date %s\n", img.WorksDateDateTime)
-	fmt.Printf("  Mode %s\n", img.ImageMode)
+	fmt.Printf("  User Name: %s\n", img.UserName)
+	fmt.Printf("  Image Title: %s\n", img.ImageTitle)
+	fmt.Printf("  Tags Title: %s\n", img.ImageTags)
+	fmt.Printf("  Translated Tags: %s\n", img.TranslationTag)
+	fmt.Printf("  Date: %s\n", img.WorksDateDateTime)
+	fmt.Printf("  Mode: %s\n", img.ImageMode)
 	if img.ImageMode == "manga" {
-		fmt.Printf("  Pages %d\n", img.ImageCount)
+		fmt.Printf("  Pages: %d\n", img.ImageCount)
 	}
-	fmt.Printf("  Bookmarks %f\n", img.BookmarkCount)
+	fmt.Printf("  Bookmarks %d\n", img.BookmarkCount)
 
 }
 
-func MakeFilename(img *sql.ImageInfo, path string, tp string) string {
-	fn := DelSpeChar(img.UserName)
+func MakeFilename(img *sql.ImageInfo, path string, user, mode, data, content string) (string, error) {
+	fn := utils.DelSpeChar(img.UserName)
 	var r string
-	if tp == "rk" {
-		r = fmt.Sprintf("%s (%s)", fn, img.UserID)
-	} else {
-		r = fmt.Sprintf("%s (%s)", img.ImageTitle, img.ImageId)
+	r = fmt.Sprintf("%s(%s)", fn, img.UserID)
+	if user == "rank" {
+		r = filepath.Join(user, mode, fmt.Sprintf("%s-%s", data, content), r)
+	} else if user == "author" {
+		// 作者的收藏，作品等等
+		r = filepath.Join(user, fmt.Sprintf("%s-%s", data, content), r)
+	} else if user == "tag" {
+		r = filepath.Join(user, fmt.Sprintf("%s-%s", data, content), r)
 	}
-	path += string(os.PathSeparator)
-	path += r
+
+	path = filepath.Join(path, r)
 	_, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			err = os.MkdirAll(path, os.ModeDir|os.ModePerm)
 			if err != nil {
-				log.Fatalf("创建文件夹(%s)出现错误喽", path)
+				return "", err
 			}
 		}
 
 	}
 	fmt.Printf("  Creating directory: %s. Successful!\n", path)
 
-	return path
+	return path, nil
 }
 
-func ParseInfo(doc *goquery.Document, imgid string) *sql.ImageInfo {
+func ParseInfo(doc *goquery.Document, imgId string) (*sql.ImageInfo, error) {
 	imageInfo := &sql.ImageInfo{
-		PixivArtist: &Artist.PixivArtist{},
+		PixivArtist: &artist.PixivArtist{},
 	}
 
 	r, _ := doc.Find("meta#meta-preload-data").Attr("content")
 	var con = &Cont{}
 	json.Unmarshal([]byte(r), &con)
-	if len(con.Illust[imgid]) == 0 {
-		panic("error, image id 不同")
+	if len(con.Illust[imgId]) == 0 {
+		return nil, nil
 	}
 	// Artist
 	parent := false
@@ -132,15 +139,16 @@ func ParseInfo(doc *goquery.Document, imgid string) *sql.ImageInfo {
 		}
 	}
 
-	root := con.Illust[imgid]
+	root := con.Illust[imgId]
 
 	imageCount := int((root["pageCount"]).(float64))
 	tempUrl := ((root["urls"]).(map[string]interface{})["original"]).(string)
 	tempResizedUrl := ((root["urls"]).(map[string]interface{})["regular"]).(string)
 	imageInfo.ImageCount = imageCount
 
+	//  不够齐全
 	if imageCount == 1 {
-		if strings.Contains(tempUrl, "ugoira") {
+		if strings.Contains(tempUrl, "ugoira") { // 动图
 			imageInfo.ImageMode = "ugoira_view"
 			tempUrl = strings.Replace(tempUrl, "/img-original/", "/img-zip-ugoira/", -1)
 			tempUrl = strings.Split(tempUrl, "_ugoira0")[0]
@@ -169,7 +177,7 @@ func ParseInfo(doc *goquery.Document, imgid string) *sql.ImageInfo {
 	//fmt.Println(imageInfo.ImageUrls)
 	imageInfo.ImageTitle = (root["illustTitle"]).(string)
 	//imageInfo.ImageCaption = (root["illustComment"]).(string)
-	if root["seriesNavData"] == nil {
+	if root["seriesNavData"] == nil { // 是否是系列
 		imageInfo.SeriesNavData = map[string]string{"nil": "nil"}
 	} else {
 		mss := make(map[string]string, 6)
@@ -191,17 +199,17 @@ func ParseInfo(doc *goquery.Document, imgid string) *sql.ImageInfo {
 
 		imageInfo.SeriesNavData = mss
 	}
-	//fmt.Println(reflect.TypeOf(root["viewCount"]), reflect.TypeOf(root["likeCount"]))
-	imageInfo.JdRtv = (root["viewCount"]).(float64)
-	imageInfo.JdRtc = (root["likeCount"]).(float64)
+
+	imageInfo.JdRtv = (root["viewCount"]).(float64) // 查看人数
+	imageInfo.JdRtc = (root["likeCount"]).(float64) // 喜欢人数
 	tags := root["tags"]
-	if tg, ok := tags.(map[string]interface{}); ok == true {
-		if tg == nil {
-			panic("tg err")
-		}
+	if tg, ok := tags.(map[string]interface{}); ok == true && tg != nil {
+
+		//if tg == nil {
+		//	panic("tg err")
+		//}
 
 		gt := tg["tags"]
-		//fmt.Println(reflect.TypeOf(tg), gt)
 		p := (gt).([]interface{})
 		for _, tag := range p {
 			tagp := tag.(map[string]interface{})
@@ -219,9 +227,9 @@ func ParseInfo(doc *goquery.Document, imgid string) *sql.ImageInfo {
 	//fmt.Println("createDate", root["createDate"])
 	imageInfo.WorksDateDateTime, _ = time.Parse(time.RFC3339, (root["createDate"]).(string))
 	imageInfo.WorksResolution = fmt.Sprintf("%.0fx%.0f", (root["width"]).(float64), (root["height"]).(float64))
-	if imageCount > 1 {
-		imageInfo.WorksResolution = fmt.Sprintf("Multiple images: %dP", imageCount)
-	}
+	//if imageCount > 1 {
+	//	imageInfo.WorksResolution = fmt.Sprintf("Multiple images: %dP", imageCount)
+	//}
 
 	imageInfo.BookmarkCount = int64((root["bookmarkCount"]).(float64))
 	imageInfo.ImageResponseCount = (root["responseCount"]).(float64)
@@ -234,38 +242,12 @@ func ParseInfo(doc *goquery.Document, imgid string) *sql.ImageInfo {
 	}
 	imageInfo.UserID = (root["userId"]).(string)
 	imageInfo.UserName = (root["userName"]).(string)
-	imageInfo.UserAccount = (root["userAccount"]).(string)
+	//imageInfo.UserAccount = (root["userAccount"]).(string)
 
-	return imageInfo
+	return imageInfo, nil
+
 }
 
 func CheckImageIsExiste() bool {
 	return false
-}
-
-func CheckPathIsExit(n string) {
-
-	_, err := os.Stat(n)
-	if err != nil {
-		if os.IsNotExist(err) {
-			err = os.MkdirAll(n, os.ModePerm)
-			if err != nil {
-				log.Fatal("创建文件夹出现错误喽")
-			}
-		}
-	}
-}
-
-func DelSpeChar(DF string) string {
-	DF = strings.Replace(DF, "\\", "", -1)
-	DF = strings.Replace(DF, "/", "", -1)
-	DF = strings.Replace(DF, ":", "", -1)
-	DF = strings.Replace(DF, "*", "", -1)
-	DF = strings.Replace(DF, "?", "", -1)
-	DF = strings.Replace(DF, "\\\"", "", -1)
-	DF = strings.Replace(DF, "<", "", -1)
-	DF = strings.Replace(DF, ">", "", -1)
-	DF = strings.Replace(DF, "|", "", -1)
-	return DF
-
 }

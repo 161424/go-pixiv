@@ -1,4 +1,6 @@
-package conf
+package addr
+
+import "github.com/chen/download_pixiv_pic/conf"
 
 type proxy struct {
 	Ip   string
@@ -7,6 +9,7 @@ type proxy struct {
 
 var Proxy proxy
 var Header header
+var l = conf.Conf
 
 type NetWork struct {
 	Retry         int
@@ -16,9 +19,9 @@ type NetWork struct {
 
 func init() {
 	//fmt.Println("123", ConfigData["Header"]["User_agent"])
-	Proxy.Ip = (ConfigData["NetWork"]["ProxyIp"]).(string)
-	Proxy.Port = (ConfigData["NetWork"]["ProxyPort"]).(string)
-	Header.UserAgent = (ConfigData["Header"]["UserAgent"]).(string)
+	Proxy.Ip = l.GetString("NetWork.ProxyIp")
+	Proxy.Port = l.GetString("NetWork.ProxyPort")
+	Header.UserAgent = l.GetString("Authentication.UserAgent")
 
 }
 
@@ -34,8 +37,8 @@ type header struct {
 
 func NewNetWork() *NetWork {
 	return &NetWork{
-		Retry:         (ConfigData["NetWork"]["Retry"]).(int),
-		RetryWait:     (ConfigData["NetWork"]["RetryWait"]).(int),
-		DownloadDelay: (ConfigData["NetWork"]["DownloadDelay"]).(int),
+		Retry:         l.GetInt("NetWork.Retry"),
+		RetryWait:     l.GetInt("NetWork.RetryWait"),
+		DownloadDelay: l.GetInt("NetWork.DownloadDelay"),
 	}
 }

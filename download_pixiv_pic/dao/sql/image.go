@@ -5,7 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	"github.com/chen/download_pixiv_pic/pkg/Artist"
+	"github.com/chen/download_pixiv_pic/pkg/artist"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
 	"log"
@@ -14,9 +14,9 @@ import (
 
 type ImageInfo struct {
 	gorm.Model
-	ImageId string `gorm:"column:imageid;NOT NULL;primaryKey"`
-	Path    string `gorm:"column:Path;"`
 
+	ImageId          string         `gorm:"column:ImageId;NOT NULL;primaryKey"`
+	Status           bool           `gorm:"column:Status"`
 	ImageMode        string         `gorm:"column:ImageMode"`
 	ImageUrls        pq.StringArray `gorm:"column:ImageUrls;type:text[]"`
 	ImageResizedUrls pq.StringArray `gorm:"column:ImageResizedUrls;type:text[]"`
@@ -34,11 +34,12 @@ type ImageInfo struct {
 	BookmarkCount      int64          `gorm:"column:BookmarkCount"`
 	ImageResponseCount float64        `gorm:"column:ImageResponseCount"`
 	//ParseUrlFromCaption
-	AiType      int    `gorm:"column:AiType"`
-	UserID      string `gorm:"column:UserID"`
-	UserName    string `gorm:"column:UserName"`
-	UserAccount string `gorm:"column:UserAccount"`
-	*Artist.PixivArtist
+	AiType   int    `gorm:"column:AiType"`
+	UserID   string `gorm:"column:UserID"`
+	UserName string `gorm:"column:UserName"`
+	//UserAccount string `gorm:"column:UserAccount"`
+	SavePath string `gorm:"column:SavePath"`
+	*artist.PixivArtist
 }
 
 func (c *ImageInfo) Create(db *gorm.DB) error {

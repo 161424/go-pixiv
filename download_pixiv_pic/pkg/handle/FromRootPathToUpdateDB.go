@@ -1,8 +1,8 @@
 package handle
 
 import (
-	"github.com/chen/download_pixiv_pic/database/sql"
-	"github.com/chen/download_pixiv_pic/pkg/Browser"
+	"github.com/chen/download_pixiv_pic/dao/sql"
+	"github.com/chen/download_pixiv_pic/pkg/browser"
 	"os"
 	"strings"
 )
@@ -17,7 +17,7 @@ func FRTUDB(P string) {
 		for _, j := range value.ImageUrls {
 			pl := strings.Split(j, "/")
 			pd := strings.Split(pl[len(pl)-1], ".")
-			pj := Browser.DelSpeChar(value.ImageTitle)
+			pj := browser.DelSpeChar(value.ImageTitle)
 			path := value.Path + pd[0] + " - " + pj + "." + pd[len(pd)-1]
 			_, err := os.Stat(path)
 			if os.IsExist(err) {

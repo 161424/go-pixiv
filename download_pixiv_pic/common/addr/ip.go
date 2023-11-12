@@ -1,4 +1,4 @@
-package ip
+package addr
 
 import (
 	"bytes"

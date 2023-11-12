@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/chen/download_pixiv_pic/pkg/Artist"
-	"github.com/chen/download_pixiv_pic/pkg/Browser"
+	"github.com/chen/download_pixiv_pic/pkg/artist"
+	"github.com/chen/download_pixiv_pic/pkg/browser"
 	"log"
 	"strings"
 )
@@ -19,8 +19,8 @@ func DownLoadByAuth(string2 string) {
 }
 
 func ProcessMember(memberId, Rootpath, bookmark, tags, profile string, sp, ep, num int) {
-	da := &Artist.PixivArtist{}
-	br := &Browser.Br{}
+	da := &artist.PixivArtist{}
+	br := &browser.Br{}
 	fmt.Printf("Processing Member Id: %s\n", memberId)
 	var url = ""
 	var offsetStop int
@@ -49,7 +49,7 @@ func ProcessMember(memberId, Rootpath, bookmark, tags, profile string, sp, ep, n
 		}
 	}
 	fmt.Printf("Member Url %s\n", url)
-	resp := Browser.GetPixivPage(url, "")
+	resp := browser.GetPixivPage(url, "")
 	var r map[string]interface{}
 	json.Unmarshal(resp, &r)
 	da.GetPA(memberId, r, false, offset, limit)
@@ -89,7 +89,7 @@ func ProcessMember(memberId, Rootpath, bookmark, tags, profile string, sp, ep, n
 			} else {
 				printOffsetStop = (sp-1)*20 + len(da.ImageList)
 			}
-			for retryCount := 0; retryCount < Browser.NewWork.Retry; retryCount++ {
+			for retryCount := 0; retryCount < browser.NewWork.Retry; retryCount++ {
 				fmt.Printf("MemberId: %s Page: %d Post %d of %s\n", memberId, sp, up, da.TotalImages)
 
 				result := br.ProcessImage(imgid, rootpath, "mb")
@@ -119,27 +119,27 @@ func GetRootPath(path, an, bookmark, tags, profile string) string {
 	// 表示收藏的图片
 	if bookmark != "" {
 		_path := path + Spt + bookmark
-		Browser.CheckPathIsExit(_path)
+		browser.CheckPathIsExit(_path)
 		return _path
 	} else {
 		// 表示 标签的图片
 		if tags != "" {
 			if tags == "R18" {
 				_path := path + Spt + tags
-				Browser.CheckPathIsExit(_path)
+				browser.CheckPathIsExit(_path)
 				return _path
 			}
 			_path := path + Spt + tags
-			Browser.CheckPathIsExit(_path)
+			browser.CheckPathIsExit(_path)
 			return _path
 
 		} else if profile != "" {
 			_path := path + Spt + profile
-			Browser.CheckPathIsExit(_path)
+			browser.CheckPathIsExit(_path)
 			return _path
 		} else {
 			_path := path + Spt + "all"
-			Browser.CheckPathIsExit(_path)
+			browser.CheckPathIsExit(_path)
 			return _path
 		}
 	}
@@ -158,7 +158,7 @@ mb:
 		fmt.Print("请输入用户名: ")
 		fmt.Scanln(&md)
 		url := fmt.Sprintf("https://www.pixiv.net/search_user.php?s_mode=s_usr&i=0&nick=%s", md)
-		rb := Browser.GetPixivPage(url, "")
+		rb := browser.GetPixivPage(url, "")
 		rep := bytes.NewReader(rb)
 		doc, _ := goquery.NewDocumentFromReader(rep)
 		n, o := doc.Find(".user-recommendation-item > a").Attr("href")
@@ -216,12 +216,12 @@ info:
 
 }
 
-func ArtistSomeInfo(da *Artist.PixivArtist) {
+func ArtistSomeInfo(da *artist.PixivArtist) {
 	// https://www.pixiv.net/ajax/user/83739
 	// https://www.pixiv.net/ajax/user/6558698
 	url := fmt.Sprintf("https://www.pixiv.net/ajax/user/%s", da.ArtistId)
 	var r map[string]interface{}
-	rb := Browser.GetPixivPage(url, "")
+	rb := browser.GetPixivPage(url, "")
 	json.Unmarshal(rb, &r)
 
 	da.ArtistName = ((r["body"]).(map[string]interface{})["name"]).(string)

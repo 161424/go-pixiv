@@ -2,8 +2,8 @@ package handle
 
 import (
 	"fmt"
-	sql2 "github.com/chen/download_pixiv_pic/common/model/sql"
-	"github.com/chen/download_pixiv_pic/database/sql"
+	sql2 "github.com/chen/download_pixiv_pic/dao/dao"
+	"github.com/chen/download_pixiv_pic/dao/sql"
 	"time"
 )
 
